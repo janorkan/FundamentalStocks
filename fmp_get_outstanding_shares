@@ -1,0 +1,121 @@
+# Get Outstanding Shares from Financial Modelling
+import os
+import requests
+import pandas as pd
+from postgres_connect import pg_conn
+from fmp_get_stocks import get_existing_symbols
+
+# Get API Key
+API_KEY = os.getenv("FMP_API_KEY", "API error")
+
+
+# Get all stocks
+def fmp_get_all_outstanding_shares():
+    shares_url = (
+        f"https://financialmodelingprep.com/stable/shares-float-all?apikey={API_KEY}"
+    )
+    shares_response = requests.get(shares_url)
+
+    if shares_response.status_code == 200:
+        stock_list = shares_response.json()
+        df_shares = pd.DataFrame(stock_list)
+        print(f"OUTSTANDING_SHARES list retrieved! {len(df_shares)} share rows.")
+    else:
+        print(
+            f"Error fetching OUTSTANDING_SHARES list! Status code: {shares_response.status_code}"
+        )
+        df_shares = pd.DataFrame()  # Empty DataFrame as fallback
+
+    return df_shares
+
+
+# Get existing shares
+def get_existing_outstanding_shares():
+    conn = pg_conn()
+    if conn is None:
+        return []
+
+    try:
+        cur = conn.cursor()
+
+        cur.execute("SELECT id_outstanding_shares, symbol FROM fs.outstanding_shares;")
+        rows = cur.fetchall()
+        existing_id_outstanding_shares = [symbol[0] for symbol in rows]
+        existing_share_symbols = [symbol[1] for symbol in rows]
+
+        cur.close()
+
+        return existing_id_outstanding_shares, existing_share_symbols
+
+    except Exception as e:
+        print("Error fetching existing shares or stocks:", repr(e))
+        return []
+    finally:
+        conn.close()
+
+
+def insert_outstanding_shares(df):
+    conn = pg_conn()
+    if conn is None:
+        return
+
+    try:
+        cur = conn.cursor()
+        # existing_shares = get_existing_outstanding_shares()
+        # existing_shares_dict = dict(zip(existing_shares[1], existing_shares[0]))
+
+        existing_stocks = get_existing_symbols()
+        existing_stocks_dict = dict(zip(existing_stocks[1], existing_stocks[0]))
+        count_i = 0
+
+        for _, row in df.iterrows():
+            symbol = row["symbol"]
+
+            if row["date"] is None:
+                row["date"] = "2000-01-01"
+
+            if symbol in existing_stocks_dict:
+                insert_query = """
+                INSERT INTO fs.outstanding_shares (id_stock, date, outstanding_shares, float_shares)
+                    SELECT id_stock, %s, %s, %s
+                    FROM fs.stock
+                    WHERE symbol = %s AND NOT EXISTS (
+                        SELECT 1
+                        FROM fs.outstanding_shares
+                        WHERE id_stock = fs.stock.id_stock AND date = %s
+                    );
+                """
+                cur.execute(
+                    insert_query,
+                    (
+                        row["date"],
+                        row["outstandingShares"],
+                        row["floatShares"],
+                        symbol,
+                        row["date"],
+                    ),
+                )
+                count_i += 1
+        print(f"➕ Inserted: {count_i}")
+
+        conn.commit()  # Save changes
+        cur.close()
+        print("✅ Import finished!")
+
+    except Exception as e:
+        print("Import error:", repr(e))
+    finally:
+        conn.close()
+
+
+# Run the functions & Show database content
+if __name__ == "__main__":
+    df_shares = fmp_get_all_outstanding_shares()
+    insert_outstanding_shares(df_shares)
+
+    conn = pg_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT count(*) FROM fs.outstanding_shares;")
+    stocks_content = cur.fetchall()
+    print(f"Shares in database: {stocks_content}")
+    cur.close()
