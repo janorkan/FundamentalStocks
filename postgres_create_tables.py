@@ -69,6 +69,7 @@ def create_stocks_table(cur):
             change DECIMAL NOT NULL,
             change_percent DECIMAL NOT NULL,
             vwap DECIMAL NOT NULL,
+            UNIQUE (id_stock, date),
             FOREIGN KEY (id_stock) REFERENCES fs.stock(id_stock));
         """)
         print("Table 'fs.stock_price' created or already exists.")

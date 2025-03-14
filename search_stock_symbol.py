@@ -24,7 +24,7 @@ def search_stock_symbol(text):
 
 # Test search_stock_symbol
 if __name__ == "__main__":
-    search_text = "hens"
+    search_text = "nvidia"
     rows = search_stock_symbol(search_text)
     if rows:
         for row in rows:
