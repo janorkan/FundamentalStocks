@@ -15,9 +15,10 @@ The project is ongoing, therefore only a short outlook on the roadmap.
 - INSERT and UPDATE commands with foreign key created in Python
 - First tests created
 
-#### Step 3: Notebook SQL Analysis
+#### Step 3: Notebook SQL Analysis ✅
 - Advanced analytical SQL commands on existing basic SQL datasets with JOINS, GROUPBY and WINDWO Function in Jupyter notebook
 - Exercice only!
+- Example SQL queries can be found here [LINK](https://github.com/janorkan/FundamentalStocks/blob/main/StockDataAnalyticsSQL.ipynb)
 
 #### Step 4: Get Income, Balance and Cashflow Data
 
