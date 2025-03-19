@@ -104,6 +104,90 @@ def create_stocks_table(cur):
         print("Table 'fs.company_profile' created or already exists.")
     except Exception as e:
         print("Error creating table 'fs.company_profile':", e)
+
+    # Financial Report table
+    try:
+        cur.execute("""CREATE TABLE IF NOT EXISTS fs.financial_report (
+            id_financial_report SERIAL PRIMARY KEY,
+            id_stock INT NOT NULL,
+            fiscal_year INT NOT NULL,
+            period INT NOT NULL,
+            file_path VARCHAR(255) NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (id_stock) REFERENCES fs.stock(id_stock));
+        """)
+        print("Table 'fs.financial_report' created or already exists.")
+    except Exception as e:
+        print("Error creating table 'fs.financial_report':", e)
+
+    # Balance sheet data
+    try:
+        cur.execute("""CREATE TABLE IF NOT EXISTS fs.balance_sheet (    
+            id_balance_sheet SERIAL PRIMARY KEY,
+            id_financial_report INT NOT NULL,
+            fiscal_year INT NOT NULL,
+            period INT NOT NULL,
+            reported_currency VARCHAR NOT NULL,
+		    cash_and_cashequivalents DECIMAL,
+		    short_term_investments DECIMAL,
+		    cash_and_shortterm_investments DECIMAL,
+		    net_receivables DECIMAL,
+		    accounts_receivables DECIMAL,
+		    other_receivables DECIMAL,
+		    inventory DECIMAL,
+		    prepaids DECIMAL,
+		    other_current_assets DECIMAL,
+		    total_current_assets DECIMAL,
+		    property_plant_equipment_net DECIMAL,
+		    goodwill DECIMAL,
+		    intangible_assets DECIMAL,
+		    goodwill_and_intangible_assets DECIMAL,
+		    long_term_investments DECIMAL,
+		    tax_assets DECIMAL,
+		    other_noncurrent_assets DECIMAL,
+		    total_noncurrent_assets DECIMAL,
+		    other_assets DECIMAL,
+		    total_assets DECIMAL,
+		    total_payables DECIMAL,
+		    account_payables DECIMAL,
+		    other_payables DECIMAL,
+		    accrued_expenses DECIMAL,
+		    shortterm_debt DECIMAL,
+		    capitallease_obligations_current DECIMAL,
+		    tax_payables DECIMAL,
+		    deferred_revenue DECIMAL,
+		    other_current_liabilities DECIMAL,
+		    total_current_liabilities DECIMAL,
+		    longterm_debt DECIMAL,
+		    deferred_revenue_noncurrent DECIMAL,
+		    deferred_taxliabilities_noncurrent DECIMAL,
+		    other_noncurrent_liabilities DECIMAL,
+		    total_noncurrent_liabilities DECIMAL,
+		    other_liabilities DECIMAL,
+		    capitallease_obligations DECIMAL,
+		    total_liabilities DECIMAL,
+		    treasury_stock DECIMAL,
+		    preferred_stock DECIMAL,
+		    common_stock DECIMAL,
+		    retained_earnings DECIMAL,
+		    additional_paidin_capital DECIMAL,
+		    accumulatedother_comprehensive_incomeloss DECIMAL,
+		    other_totalstockholders_equity DECIMAL,
+		    total_stockholders_equity DECIMAL,
+		    total_equity DECIMAL,
+		    minority_interest DECIMAL,
+		    total_liabilities_and_totalequity DECIMAL,
+		    total_investments DECIMAL,
+		    total_debt DECIMAL,
+		    net_debt DECIMAL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (id_financial_report, fiscal_year, period),
+            FOREIGN KEY (id_financial_report) REFERENCES fs.stock(id_stock));
+        """)
+        print("Table 'fs.balance_sheet' created or already exists.")
+    except Exception as e:
+        print("Error creating table 'fs.balance_sheet':", e)
+
     conn.commit()
 
 
